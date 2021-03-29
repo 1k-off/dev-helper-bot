@@ -1,0 +1,26 @@
+[Unit]
+Description=Ooops bot service
+ConditionPathExists=/opt/ooops-bot
+After=network.target
+
+[Service]
+Type=simple
+
+Restart=always
+RestartSec=5s
+StartLimitIntervalSec=60
+
+WorkingDirectory=/opt/ooops-bot
+ExecStart=/opt/ooops-bot/ooops-bot
+
+# make sure log directory exists and owned by syslog
+PermissionsStartOnly=true
+ExecStartPre=/bin/mkdir -p /var/log/ooops-bot
+ExecStartPre=/bin/chown syslog:adm /var/log/ooops-bot
+ExecStartPre=/bin/chmod 755 /var/log/ooops-bot
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=ooops-bot
+
+[Install]
+WantedBy=multi-user.target

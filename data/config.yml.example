@@ -1,0 +1,14 @@
+app_admin_email:
+  - "bogdan.kosarevskyi@gmail.com"
+
+slack_token: "xoxb-"
+slack_channel: "ooops-playground"
+
+nginx_parent_domain: "dev.domain.tld"
+nginx_allowed_subnet:
+  - "192.168.0.0/22"
+  - "192.168.174.0/24"
+nginx_denied_ips:
+  - "192.168.0.1/32"
+  - "192.168.0.2/32"
+  - "192.168.0.10/32"

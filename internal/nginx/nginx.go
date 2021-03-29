@@ -128,9 +128,9 @@ func Create(clientIp, domain string, basicauth bool) error {
 			return err
 		}
 		f.Close()
-		//if err := reloadServer(); err != nil {
-		//	return err
-		//}
+		if err := reloadServer(); err != nil {
+			return err
+		}
 		log.Println(fmt.Sprintf("[INFO] Created config. ClientIP: %v, Domain: %s.", clientIp, domain))
 		return nil
 	} else {
@@ -143,9 +143,9 @@ func Delete(domain string) error {
 	if err := os.Remove(configBasePath + "/" + domain); err != nil {
 		return err
 	}
-	//if err := reloadServer(); err != nil {
-	//	return err
-	//}
+	if err := reloadServer(); err != nil {
+		return err
+	}
 	return nil
 }
 

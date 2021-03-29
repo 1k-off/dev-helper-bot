@@ -15,12 +15,14 @@ type Config struct {
 	NginxAllowedIPs []string `yaml:"nginx_allowed_subnet"`
 	NginxDeniedIPs []string `yaml:"nginx_denied_ips"`
 	NginxParentDomain string `yaml:"nginx_parent_domain"`
+	Debug bool `yaml:"debug"`
 	Store *store.Store
 	Bot *slacker.Slacker
 }
 
 func newConfig() *Config {
 	return &Config{
+		Debug: false,
 	}
 }
 
