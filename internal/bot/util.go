@@ -24,11 +24,16 @@ func transformName(name string) string {
 	if len(name)== 0 || name == userWithEmptyDisplayName {
 		return getRandomString()
 	}
-	firstName := strings.Split(name, " ")[0]
-	lastName := strings.Split(name, " ")[1]
+	nameArr := strings.FieldsFunc(name, split)
+	firstName := nameArr[0]
+	lastName := nameArr[1]
 	allowedSymbols, _ := regexp.Compile("[^A-Za-z0-9]+")
 	subdomain := string(firstName[0]) + "-" + lastName
 	return allowedSymbols.ReplaceAllString(strings.ToLower(subdomain), "-")
+}
+
+func split(r rune) bool {
+	return r == ' ' || r == '.'
 }
 
 func updateNginxConf(domain, ip string, basicauth bool) error {
