@@ -27,7 +27,7 @@ jobs:
     - name: Create windows zip
       uses: papeloto/action-zip@v1
       with:
-        files: data/ bin/ooops.exe
+        files: data bin/ooops.exe
         dest: ooops_windows_amd64.zip
           
     - name: Build linux amd64
@@ -39,16 +39,23 @@ jobs:
     - name: Create linux zip 
       uses: papeloto/action-zip@v1
       with:
-        files: data/ bin/ooops
+        files: data bin/ooops
         dest: ooops_linux_amd64.zip
-        
+
+    - name: Generate release name
+      uses: thclark/coolname-generator-action@main
+      with:
+        separator: "_"
+        length: "2"
+        style: "lowerCase"
+  
     - name: Create release
       uses: actions/create-release@v1
       id: create_release
       with:
         draft: false
         prerelease: false
-        release_name: ${{ steps.version.outputs.version }}
+        release_name: ${{ steps.generator.outputs.name }}
         tag_name: ${{ github.ref }}
       env:
         GITHUB_TOKEN: ${{ github.token }}
