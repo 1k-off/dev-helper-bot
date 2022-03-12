@@ -23,16 +23,20 @@ func New(uri string, log zerolog.Logger) *DataStore {
 	if err != nil {
 		log.Fatal().Err(err)
 	}
-	credential := options.Credential{
-		Username: cs.Username,
-		Password: cs.Password,
-	}
-	client, err := mongo.NewClient(options.Client().ApplyURI(uri).SetAuth(credential))
+// 	credential := options.Credential{
+// 		Username: cs.Username,
+// 		Password: cs.Password,
+// 	}
+	client, err := mongo.NewClient(options.Client().ApplyURI(uri))
 	if err != nil {
 		log.Fatal().Err(err)
 	}
 	ctx := context.Background()
 	err = client.Connect(ctx)
+	if err != nil {
+		log.Fatal().Err(err).Msg("")
+	}
+	err = client.Ping(context.TODO(), nil)
 	if err != nil {
 		log.Fatal().Err(err).Msg("")
 	}
