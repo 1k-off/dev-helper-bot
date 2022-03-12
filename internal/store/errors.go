@@ -3,7 +3,7 @@ package store
 import "errors"
 
 var (
-	errRecordNotFound = errors.New("record not found")
-	errNotUpdated = errors.New("not updated")
-	errNoRowsAffected = errors.New("no rows affected")
+	ErrRecordNotFound = errors.New("record not found")
+	ErrNoRowsUpdated  = errors.New("no rows updated")
+	ErrNoRowsDeleted  = errors.New("no records deleted")
 )

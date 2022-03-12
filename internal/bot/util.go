@@ -1,9 +1,9 @@
 package bot
 
 import (
+	"github.com/1k-off/dev-helper-bot/internal/nginx"
 	"github.com/marstr/guid"
 	"github.com/slack-go/slack"
-	"github.com/souladm/dev-helper-bot/internal/nginx"
 	"regexp"
 	"strings"
 )
@@ -21,7 +21,7 @@ func getRandomString() string {
 }
 
 func transformName(name string) string {
-	if len(name)== 0 || name == userWithEmptyDisplayName {
+	if len(name) == 0 || name == userWithEmptyDisplayName {
 		return getRandomString()
 	}
 	nameArr := strings.FieldsFunc(name, split)
@@ -41,7 +41,7 @@ func updateNginxConf(domain, ip string, basicauth bool) error {
 	if err != nil {
 		return err
 	}
-	if err := nginx.Create(ip, domain, basicauth); err != nil {
+	if err = nginx.Create(ip, domain, basicauth); err != nil {
 		return err
 	}
 	return nil
