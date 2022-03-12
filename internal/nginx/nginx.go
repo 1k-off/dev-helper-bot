@@ -2,8 +2,8 @@ package nginx
 
 import (
 	"fmt"
+	"github.com/rs/zerolog"
 	"html/template"
-	"log"
 	"net"
 	"os"
 	"os/exec"
@@ -11,12 +11,13 @@ import (
 
 type SystemIp struct {
 	AllowedIPs []*net.IPNet
-	DeniedIPs []net.IP
+	DeniedIPs  []net.IP
 }
 
 var (
 	privateIPBlocks []*net.IPNet
-	sysIP SystemIp
+	sysIP           SystemIp
+	logger          zerolog.Logger
 )
 
 func init() {
@@ -42,6 +43,9 @@ func init() {
 	}
 }
 
+func New(l zerolog.Logger) {
+	logger = l
+}
 func parseSystemIPs(allowedIPsString, deniedIPsString []string) (*SystemIp, error) {
 	for _, addr := range allowedIPsString {
 		_, ipNetAllowed, _ := net.ParseCIDR(addr)
@@ -55,7 +59,7 @@ func parseSystemIPs(allowedIPsString, deniedIPsString []string) (*SystemIp, erro
 	return &sysIP, nil
 }
 
-func parseClientIP (clientIpString string) (net.IP, error) {
+func parseClientIP(clientIpString string) (net.IP, error) {
 	ip := net.ParseIP(clientIpString)
 	if len(ip) == 0 {
 		return nil, errNotValidIp
@@ -72,7 +76,7 @@ func CheckIfIpAllowed(allowedIPs, deniedIPs []string, ip string) error {
 	if err != nil {
 		return errIpParse
 	}
-	if ! isPrivateIP(clientIp) {
+	if !isPrivateIP(clientIp) {
 		return errNotPrivateIp
 	}
 
@@ -86,7 +90,7 @@ func CheckIfIpAllowed(allowedIPs, deniedIPs []string, ip string) error {
 			}
 		}
 	}
-	if ! isAllowedIP {
+	if !isAllowedIP {
 		return errNotOfficeIp
 	}
 
@@ -109,9 +113,9 @@ func Create(clientIp, domain string, basicauth bool) error {
 		ba = "off"
 	}
 
-	configData := map[string]string {
-		"ip": clientIp,
-		"domain": domain,
+	configData := map[string]string{
+		"ip":        clientIp,
+		"domain":    domain,
 		"basicauth": ba,
 	}
 	if _, err := os.Stat(configBasePath + "/" + domain); os.IsNotExist(err) {
@@ -131,7 +135,7 @@ func Create(clientIp, domain string, basicauth bool) error {
 		if err := reloadServer(); err != nil {
 			return err
 		}
-		log.Println(fmt.Sprintf("[INFO] Created config. ClientIP: %v, Domain: %s.", clientIp, domain))
+		logger.Info().Msg(fmt.Sprintf("[nginx] created config. ClientIP: %v, Domain: %s.", clientIp, domain))
 		return nil
 	} else {
 		return errConfigExists
