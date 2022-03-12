@@ -21,24 +21,24 @@ jobs:
       uses: montudor/action-zip@v1
   
     - name: Build windows amd64
-      run: go build -o ../../bin/ooops.exe
+      run: go build -o ../../ooops.exe
       working-directory: cmd/bot
       env:
         GOOS: windows
         GOARCH: amd64
 
     - name: Create windows zip
-      run: zip -qq -r ooops_windows_amd64.zip data/ bin/ooops.exe
+      run: zip -qq -r ooops_windows_amd64.zip data/ ooops.exe
           
     - name: Build linux amd64
-      run: go build -o ../../bin/ooops
+      run: go build -o ../../ooops
       working-directory: cmd/bot
       env:
         GOOS: linux
         GOARCH: amd64
         
     - name: Create windows zip
-      run: zip -qq -r ooops_linux_amd64.zip data/ bin/ooops
+      run: zip -qq -r ooops_linux_amd64.zip data/ ooops
 
     - name: Generate release name
       uses: thclark/coolname-generator-action@main
