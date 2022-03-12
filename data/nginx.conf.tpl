@@ -12,7 +12,7 @@ server {
     auth_basic_user_file /etc/nginx/passwd/default;
 
     location / {
-        proxy_pass http://{{ .ip }};
+        proxy_pass {{ .scheme }}://{{ .ip }};
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $remote_addr;
