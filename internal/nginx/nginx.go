@@ -107,16 +107,22 @@ func CheckIfIpAllowed(allowedIPs, deniedIPs []string, ip string) error {
 	return nil
 }
 
-func Create(clientIp, domain string, basicauth bool) error {
+func Create(clientIp, domain string, basicauth, fullSsl bool) error {
 	ba := "Restricted"
 	if !basicauth {
 		ba = "off"
+	}
+
+	scheme := schemeHttp
+	if fullSsl {
+		scheme = schemeHttps
 	}
 
 	configData := map[string]string{
 		"ip":        clientIp,
 		"domain":    domain,
 		"basicauth": ba,
+		"scheme":    scheme,
 	}
 	if _, err := os.Stat(configBasePath + "/" + domain); os.IsNotExist(err) {
 		t, err := template.ParseFiles("data/nginx.conf.tpl")

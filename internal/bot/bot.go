@@ -30,7 +30,7 @@ func Run(config *app.Config) error {
 	}
 
 	updateCommand := &slacker.CommandDefinition{
-		Description: "Update parameter for domain. Available params: expire (no value), basicauth(true|false), ip (<ip>).",
+		Description: "Update parameter for domain. Available params: expire (no value), basicauth(true|false), ip (<ip>), full-ssl(true|false).",
 		Example:     "update <param> <value>",
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			param := request.StringParam("param", "expire")
@@ -86,7 +86,7 @@ func createHandler(config *app.Config, ctx slacker.BotContext, userId, ip string
 		DeleteAt:  deleteDate,
 		BasicAuth: true,
 	}
-	if err := nginx.Create(domain.IP, domain.FQDN, domain.BasicAuth); err != nil {
+	if err := nginx.Create(domain.IP, domain.FQDN, domain.BasicAuth, domain.FullSsl); err != nil {
 		config.Log.Err(err).Msg(fmt.Sprintf("[bot] config creation. UserID: %s (%s), tried IP: %s.", userId, friendlyUserName, domain.IP))
 		return fmt.Sprintf("<@%s> [ERROR] config creation. error: %v", userId, err)
 	}
@@ -120,7 +120,7 @@ func updateHandler(config *app.Config, ctx slacker.BotContext, userId, param, va
 			return fmt.Sprintf("<@%s> [ERROR] ip check. IP: %s, error: %v", userId, ip, err)
 		}
 		d.IP = ip
-		if err = updateNginxConf(d.FQDN, d.IP, d.BasicAuth); err != nil {
+		if err = updateNginxConf(d.FQDN, d.IP, d.BasicAuth, d.FullSsl); err != nil {
 			config.Log.Err(err).Msg("")
 			return err.Error()
 		}
@@ -131,7 +131,17 @@ func updateHandler(config *app.Config, ctx slacker.BotContext, userId, param, va
 			return err.Error()
 		}
 		d.BasicAuth = ba
-		if err := updateNginxConf(d.FQDN, d.IP, d.BasicAuth); err != nil {
+		if err := updateNginxConf(d.FQDN, d.IP, d.BasicAuth, d.FullSsl); err != nil {
+			return err.Error()
+		}
+	case "full-ssl":
+		fs, err := strconv.ParseBool(value)
+		if err != nil {
+			config.Log.Err(err).Msg("")
+			return err.Error()
+		}
+		d.FullSsl = fs
+		if err := updateNginxConf(d.FQDN, d.IP, d.BasicAuth, d.FullSsl); err != nil {
 			return err.Error()
 		}
 	default:

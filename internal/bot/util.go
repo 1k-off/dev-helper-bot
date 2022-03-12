@@ -36,12 +36,12 @@ func split(r rune) bool {
 	return r == ' ' || r == '.'
 }
 
-func updateNginxConf(domain, ip string, basicauth bool) error {
+func updateNginxConf(domain, ip string, basicauth, fullSsl bool) error {
 	err := nginx.Delete(domain)
 	if err != nil {
 		return err
 	}
-	if err = nginx.Create(ip, domain, basicauth); err != nil {
+	if err = nginx.Create(ip, domain, basicauth, fullSsl); err != nil {
 		return err
 	}
 	return nil
