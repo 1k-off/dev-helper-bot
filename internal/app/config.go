@@ -17,6 +17,10 @@ type Config struct {
 	SlackBotToken              string   `yaml:"slack_bot_token"`
 	SlackAppToken              string   `yaml:"slack_app_token"`
 	SlackChannelName           string   `yaml:"slack_channel"`
+	PritunlHost                string   `yaml:"pritunl_host"`
+	PritunlToken               string   `yaml:"pritunl_token"`
+	PritunlSecret              string   `yaml:"pritunl_secret"`
+	PritunlOrganization        string   `yaml:"pritunl_organization"`
 	NginxAllowedIPs            []string `yaml:"nginx_allowed_subnet"`
 	NginxDeniedIPs             []string `yaml:"nginx_denied_ips"`
 	NginxParentDomain          string   `yaml:"nginx_parent_domain"`

@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"github.com/1k-off/dev-helper-bot/internal/app"
 	"github.com/1k-off/dev-helper-bot/internal/nginx"
+	"github.com/1k-off/dev-helper-bot/internal/pritunl"
 	"github.com/1k-off/dev-helper-bot/model"
 	"github.com/shomali11/slacker"
+	"github.com/slack-go/slack"
 	"strconv"
 	"time"
 )
@@ -57,9 +59,37 @@ func Run(config *app.Config) error {
 		},
 	}
 
+	getVpnConfigCommand := &slacker.CommandDefinition{
+		Description: "Get your personal vpn config",
+		Example:     "vpn get",
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
+			userId := botCtx.Event().User
+			url, err := getVpnConfigHandler(config, botCtx, userId)
+			if err != nil {
+				err1 := response.Reply("You are not allowed to get vpn configs!", slacker.WithThreadReply(true))
+				if err1 != nil {
+					config.Log.Err(err1).Msg("")
+					return
+				}
+			}
+			client := botCtx.Client()
+			client.PostMessage(userId, slack.MsgOptionText(url, false))
+			if err != nil {
+				config.Log.Err(err).Msg("")
+				return
+			}
+			err = response.Reply("Just sent it to dm.", slacker.WithThreadReply(true))
+			if err != nil {
+				config.Log.Err(err).Msg("")
+				return
+			}
+		},
+	}
+
 	bot.Command("create <IP>", createCommand)
 	bot.Command("update <param> <value>", updateCommand)
 	bot.Command("delete", deleteCommand)
+	bot.Command("vpn get", getVpnConfigCommand)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -168,4 +198,15 @@ func deleteHandler(config *app.Config, ctx slacker.BotContext, userId string) st
 	config.Log.Info().Msg(fmt.Sprintf("[bot] deleted domain %s. UserID: %s (%s)", fqdn, userId, friendlyUserName))
 	return fmt.Sprintf("Deleted domain %s", fqdn)
 
+}
+
+func getVpnConfigHandler(config *app.Config, ctx slacker.BotContext, userId string) (string, error) {
+	email := getUserEmail(ctx.Client(), userId)
+	config.Log.Debug().Msgf("[bot] requested vpn config. UserID: %s (%s)", userId, email)
+	pc := pritunl.New(config.PritunlHost, config.PritunlToken, config.PritunlSecret, config.PritunlOrganization)
+	url, err := pc.GetUserKeyZipUrl(email)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("You can download your vpn config by this URL: %s", url), nil
 }
