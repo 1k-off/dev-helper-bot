@@ -16,6 +16,14 @@ func getUserFriendlyName(c *slack.Client, userId string) string {
 	return user.Profile.DisplayName
 }
 
+func getUserEmail(c *slack.Client, userId string) string {
+	user, err := c.GetUserInfo(userId)
+	if err != nil || len(user.Profile.Email) == 0 {
+		return ""
+	}
+	return user.Profile.Email
+}
+
 func getRandomString() string {
 	return guid.NewGUID().String()
 }

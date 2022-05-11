@@ -1,8 +1,14 @@
 app_admin_email:
   - "bogdan.kosarevskyi@gmail.com"
 
-slack_token: "xoxb-"
+slack_app_token: "xapp-"
+slack_bot_token: "xoxb-"
 slack_channel: "ooops-playground"
+
+pritunl_host: "https://"
+pritunl_token: ""
+pritunl_secret: ""
+pritunl_organization: ""
 
 nginx_parent_domain: "dev.domain.tld"
 nginx_allowed_subnet:

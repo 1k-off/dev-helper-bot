@@ -33,4 +33,5 @@ func main() {
 	if err := bot.Run(a); err != nil {
 		a.Log.Fatal().Err(err).Msg("")
 	}
+
 }
