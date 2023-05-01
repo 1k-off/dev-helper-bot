@@ -1,0 +1,22 @@
+app:
+  admin_emails:
+    - admin@domain.tld
+    - adminko@domain.tld
+  datasource_connection_string: mongodb+srv://username:password@cluster0.abcdefg.mongodb.net/database?authSource=database&authMechanism=SCRAM-SHA-1
+  log_level: debug
+pritunl:
+  host: "https://vpn.domain.tld"
+  token: "secret"
+  secret: "secret"
+  organization: "Organization"
+nginx:
+  parent_domain: "domain.tld"
+  allowed_subnets:
+    - "10.0.0.0/24"
+  denied_ips:
+    - "10.0.0.1/32"
+    - "10.0.0.10/32"
+slack:
+  app_token: xapp-
+  auth_token: xoxb-
+  channel: dev-helper
