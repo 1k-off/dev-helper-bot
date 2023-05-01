@@ -1,6 +1,6 @@
 package store
 
-import "devhelper/internal/entities"
+import "github.com/1k-off/dev-helper-bot/internal/entities"
 
 type DomainRepository interface {
 	Create(d *entities.Domain) error

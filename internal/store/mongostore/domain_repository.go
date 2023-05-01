@@ -2,9 +2,9 @@ package mongostore
 
 import (
 	"context"
-	"devhelper/internal/entities"
-	"devhelper/internal/store"
 	"fmt"
+	"github.com/1k-off/dev-helper-bot/internal/entities"
+	"github.com/1k-off/dev-helper-bot/internal/store"
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"

@@ -2,8 +2,8 @@ package slack
 
 import (
 	"context"
-	"devhelper/internal/handlers"
 	"fmt"
+	"github.com/1k-off/dev-helper-bot/internal/handlers"
 	"github.com/rs/zerolog/log"
 	"github.com/shomali11/slacker"
 	"github.com/slack-go/slack"

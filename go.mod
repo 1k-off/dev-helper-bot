@@ -1,4 +1,4 @@
-module devhelper
+module github.com/1k-off/dev-helper-bot
 
 go 1.20
 
