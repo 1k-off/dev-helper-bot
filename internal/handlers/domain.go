@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"devhelper/internal/entities"
-	"devhelper/internal/nginx"
 	"fmt"
+	"github.com/1k-off/dev-helper-bot/internal/entities"
+	"github.com/1k-off/dev-helper-bot/internal/nginx"
 	"github.com/rs/zerolog/log"
 	"strconv"
 	"time"

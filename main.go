@@ -1,11 +1,11 @@
 package main
 
 import (
-	"devhelper/internal/config"
-	"devhelper/internal/handlers"
-	"devhelper/internal/slack"
-	"devhelper/internal/store/mongostore"
-	"devhelper/pkg/pritunl"
+	"github.com/1k-off/dev-helper-bot/internal/config"
+	"github.com/1k-off/dev-helper-bot/internal/handlers"
+	"github.com/1k-off/dev-helper-bot/internal/slack"
+	"github.com/1k-off/dev-helper-bot/internal/store/mongostore"
+	"github.com/1k-off/dev-helper-bot/pkg/pritunl"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"os"

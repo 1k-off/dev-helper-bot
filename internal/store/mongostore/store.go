@@ -2,7 +2,7 @@ package mongostore
 
 import (
 	"context"
-	"devhelper/internal/store"
+	"github.com/1k-off/dev-helper-bot/internal/store"
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"

@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"devhelper/internal/config"
-	"devhelper/internal/store"
-	"devhelper/pkg/pritunl"
+	"github.com/1k-off/dev-helper-bot/internal/config"
+	"github.com/1k-off/dev-helper-bot/internal/store"
+	"github.com/1k-off/dev-helper-bot/pkg/pritunl"
 )
 
 type Handler struct {
