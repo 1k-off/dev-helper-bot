@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"strconv"
 )
 
 type IP struct {
@@ -18,9 +19,24 @@ type IP struct {
 var (
 	privateIPBlocks []*net.IPNet
 	sysIP           IP
+	debug           bool
 )
 
 func init() {
+	debugModeString := os.Getenv("OOOPS_DEBUG")
+	d, err := strconv.ParseBool(debugModeString)
+	if err != nil {
+		debug = false
+		log.Err(err).Msg("Error parsing OOOPS_DEBUG env variable")
+	}
+	debug = d
+	if !debug {
+		//check if nginx is installed
+		if _, err := exec.LookPath("nginx"); err != nil {
+			log.Fatal().Err(err).Msg("nginx not installed")
+		}
+	}
+
 	for _, cidr := range []string{
 		"127.0.0.0/8",    // IPv4 loopback
 		"10.0.0.0/8",     // RFC1918
@@ -39,7 +55,11 @@ func init() {
 	}
 
 	if _, err := os.Stat(configBasePath); os.IsNotExist(err) {
-		os.Mkdir(configBasePath, os.ModeDir)
+		err := os.Mkdir(configBasePath, os.ModeDir)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Error creating config directory")
+			return
+		}
 	}
 }
 
@@ -142,9 +162,14 @@ func Create(c *entities.Domain) error {
 		if err != nil {
 			return err
 		}
-		f.Close()
-		if err := reloadServer(); err != nil {
+		err = f.Close()
+		if err != nil {
 			return err
+		}
+		if !debug {
+			if err := reloadServer(); err != nil {
+				return err
+			}
 		}
 		log.Info().Msg(fmt.Sprintf("[nginx] created config. ClientIP: %v, Domain: %s.", c.IP, c.FQDN))
 		return nil
@@ -158,8 +183,10 @@ func Delete(domain string) error {
 	if err := os.Remove(configBasePath + "/" + domain); err != nil {
 		return err
 	}
-	if err := reloadServer(); err != nil {
-		return err
+	if !debug {
+		if err := reloadServer(); err != nil {
+			return err
+		}
 	}
 	log.Info().Msg(fmt.Sprintf("[nginx] deleted config. Domain: %s.", domain))
 	return nil

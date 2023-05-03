@@ -23,7 +23,9 @@ func (h *Handler) DomainCreate(userId, userName, ip string) (string, error) {
 	}
 
 	fqdn := transformName(userName) + "." + h.NginxConfig.ParentDomain
-	deleteDate := time.Now().Add(timeStoreDomain)
+	delDate := time.Now().Add(timeStoreDomain).In(h.Timezone)
+	deleteDate := time.Date(delDate.Year(), delDate.Month(), delDate.Day(), 9, 0, 0, delDate.Nanosecond(), delDate.Location())
+
 	domain := &entities.Domain{
 		FQDN:      fqdn,
 		IP:        ip,
@@ -55,7 +57,8 @@ func (h *Handler) DomainUpdate(userId, param, value string) (string, error) {
 	}
 
 	updateExp := func() {
-		d.DeleteAt = time.Now().Add(timeStoreDomain)
+		delDate := time.Now().Add(timeStoreDomain).In(h.Timezone)
+		d.DeleteAt = time.Date(delDate.Year(), delDate.Month(), delDate.Day(), 9, 0, 0, delDate.Nanosecond(), delDate.Location())
 	}
 
 	switch param {
@@ -144,4 +147,38 @@ func (h *Handler) DomainDelete(userId string) (string, error) {
 	log.Info().Msg(fmt.Sprintf("[bot] deleted domain %v", d))
 	return fmt.Sprintf("Deleted domain %s", d.FQDN), nil
 
+}
+
+// DomainGetExpired returns list of expired domains
+func (h *Handler) DomainGetExpired() ([]*entities.Domain, error) {
+	return h.Store.DomainRepository().GetAllRecordsToDeleteInDays(0)
+}
+
+// DomainGetExpirationSoon returns list of domains that will be deleted in 1 day
+func (h *Handler) DomainGetExpirationSoon() ([]*entities.Domain, error) {
+	return h.Store.DomainRepository().GetAllRecordsToDeleteInDays(1)
+}
+
+// DomainDeleteExpired deletes all expired domains
+func (h *Handler) DomainDeleteExpired() error {
+	var errors []error
+	domains, err := h.DomainGetExpired()
+	if err != nil {
+		return err
+	}
+	for _, d := range domains {
+		if err = nginx.Delete(d.FQDN); err != nil {
+			log.Err(err).Msg(fmt.Sprintf("[bot] error deleting domain %v", d))
+			errors = append(errors, err)
+		}
+		if err = h.Store.DomainRepository().DeleteByFqdn(d.FQDN); err != nil {
+			log.Err(err).Msg(fmt.Sprintf("[bot] error deleting domain %v", d))
+			errors = append(errors, err)
+		}
+		log.Info().Msg(fmt.Sprintf("[bot] deleted domain %v", d))
+	}
+	if len(errors) > 0 {
+		return fmt.Errorf(fmt.Sprintf("one or more errors occured while deleting domains. %v", errors))
+	}
+	return nil
 }
