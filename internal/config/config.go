@@ -3,19 +3,22 @@ package config
 import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
+	"time"
 )
 
 type Config struct {
-	App     App     `mapstructure:"app"`
-	Pritunl Pritunl `mapstructure:"pritunl"`
-	Nginx   Nginx   `mapstructure:"nginx"`
-	Slack   Slack   `mapstructure:"slack"`
+	App      App     `mapstructure:"app"`
+	Pritunl  Pritunl `mapstructure:"pritunl"`
+	Nginx    Nginx   `mapstructure:"nginx"`
+	Slack    Slack   `mapstructure:"slack"`
+	Timezone *time.Location
 }
 
 type App struct {
 	AdminEmails                []string `mapstructure:"admin_emails"`
 	DatasourceConnectionString string   `mapstructure:"datasource_connection_string"`
 	LogLevel                   string   `mapstructure:"log_level"`
+	Timezone                   string   `mapstructure:"timezone"`
 }
 
 type Pritunl struct {
@@ -41,6 +44,7 @@ func newDefaultConfig() *Config {
 	return &Config{
 		App: App{
 			LogLevel: "info",
+			Timezone: "Europe/Kyiv",
 		},
 	}
 }
@@ -63,6 +67,12 @@ func Load(path string) (*Config, error) {
 		return nil, err
 	}
 	setupLogger(cfg.App.LogLevel)
+	tz, err := time.LoadLocation(cfg.App.Timezone)
+	if err != nil {
+		log.Err(err).Msgf("failed to load timezone: %s", cfg.App.Timezone)
+		tz, _ = time.LoadLocation("Europe/Kyiv")
+	}
+	cfg.Timezone = tz
 	return cfg, nil
 }
 
