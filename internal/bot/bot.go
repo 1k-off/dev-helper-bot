@@ -1,8 +1,9 @@
-package slack
+package bot
 
 import (
 	"context"
 	"fmt"
+	"github.com/1k-off/dev-helper-bot/internal/cache"
 	"github.com/1k-off/dev-helper-bot/internal/handlers"
 	"github.com/rs/zerolog/log"
 	"github.com/shomali11/slacker"
@@ -10,28 +11,24 @@ import (
 	"strings"
 )
 
-type BotConfig struct {
-	bot *slacker.Slacker
-	//slackClient    *slack.Client
+type Config struct {
+	bot            *slacker.Slacker
 	SlackAuthToken string
 	SlackAppToken  string
 	Ctx            context.Context
 	Cancel         context.CancelFunc
 	AdminUserIDs   []string
 	CmdHandler     *handlers.Handler
+	ChannelName    string
+	Cache          cache.Cache
 }
 
-func New(authToken, appToken string, adminUserEmails []string, cmdHandler *handlers.Handler) *BotConfig {
+func New(authToken, appToken, channelName string, adminUserEmails []string, cmdHandler *handlers.Handler, cache cache.Cache) *Config {
 	ctx, cancel := context.WithCancel(context.Background())
-	//socketClient := socketmode.New(
-	//	slackClient,
-	//	socketmode.OptionDebug(false),
-	//	socketmode.OptionLog(log.New(os.Stdout, "socketmode: ", log.Lshortfile|log.LstdFlags)),
-	//)
 	bot := slacker.NewClient(authToken, appToken)
 	adminUserIds := getAdminUserIDs(bot.APIClient(), adminUserEmails)
 
-	return &BotConfig{
+	return &Config{
 		bot:            bot,
 		SlackAuthToken: authToken,
 		SlackAppToken:  appToken,
@@ -39,20 +36,23 @@ func New(authToken, appToken string, adminUserEmails []string, cmdHandler *handl
 		Cancel:         cancel,
 		CmdHandler:     cmdHandler,
 		AdminUserIDs:   adminUserIds,
+		ChannelName:    channelName,
+		Cache:          cache,
 	}
 }
 
-func (b *BotConfig) Run() error {
+func (b *Config) Run() error {
+	b.defineCronJobs()
 	b.defineVpnCommands()
 	b.defineDomainCommands()
 	return b.bot.Listen(b.Ctx)
 }
 
-func (b *BotConfig) Stop() {
+func (b *Config) Stop() {
 	b.Cancel()
 }
 
-func (b *BotConfig) defineVpnCommands() {
+func (b *Config) defineVpnCommands() {
 	getConfig := &slacker.CommandDefinition{
 		Description: "Get your personal vpn config",
 		Examples:    []string{"vpn get"},
@@ -176,7 +176,7 @@ func (b *BotConfig) defineVpnCommands() {
 	b.bot.Command("vpn delete <email>", deleteProfile)
 }
 
-func (b *BotConfig) defineDomainCommands() {
+func (b *Config) defineDomainCommands() {
 	createConfig := &slacker.CommandDefinition{
 		Description: "Create a domain for provided IP.",
 		Examples:    []string{"create 127.0.0.1"},

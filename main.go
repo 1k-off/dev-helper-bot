@@ -1,9 +1,10 @@
 package main
 
 import (
+	"github.com/1k-off/dev-helper-bot/internal/bot"
+	"github.com/1k-off/dev-helper-bot/internal/cache"
 	"github.com/1k-off/dev-helper-bot/internal/config"
 	"github.com/1k-off/dev-helper-bot/internal/handlers"
-	"github.com/1k-off/dev-helper-bot/internal/slack"
 	"github.com/1k-off/dev-helper-bot/internal/store/mongostore"
 	"github.com/1k-off/dev-helper-bot/pkg/pritunl"
 	"github.com/rs/zerolog"
@@ -25,24 +26,36 @@ func main() {
 
 	pritunlClient := pritunl.New(cfg.Pritunl.Host, cfg.Pritunl.Token, cfg.Pritunl.Secret, cfg.Pritunl.Organization)
 	store := mongostore.New(cfg.App.DatasourceConnectionString)
-	handler := handlers.New(pritunlClient, cfg.Nginx, store)
-	slackBot := slack.New(cfg.Slack.AuthToken, cfg.Slack.AppToken, cfg.App.AdminEmails, handler)
+	handler := handlers.New(pritunlClient, cfg.Nginx, store, cfg.Timezone)
+	c, err := cache.New("./data/cache")
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to create cache")
+	}
+
+	slackBot := bot.New(cfg.Slack.AuthToken, cfg.Slack.AppToken, cfg.Slack.Channel, cfg.App.AdminEmails, handler, c)
 
 	stopCh := make(chan os.Signal)
 	signal.Notify(stopCh, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<-stopCh
+		exitCode := 0
 		err := store.Close()
 		if err != nil {
-			return
+			log.Err(err).Msg("failed to close store")
+			exitCode = 1
+		}
+		err = c.Close()
+		if err != nil {
+			log.Err(err).Msg("failed to close cache")
+			exitCode = 1
 		}
 		slackBot.Stop()
 		log.Info().Msg("Application stopped")
-		os.Exit(0)
+		os.Exit(exitCode)
 	}()
 
 	err = slackBot.Run()
 	if err != nil {
-		log.Fatal().Err(err).Msg("failed to run slack bot")
+		log.Fatal().Err(err).Msg("failed to run bot bot")
 	}
 }

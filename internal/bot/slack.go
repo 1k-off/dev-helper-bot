@@ -1,4 +1,4 @@
-package slack
+package bot
 
 import (
 	"github.com/rs/zerolog/log"
