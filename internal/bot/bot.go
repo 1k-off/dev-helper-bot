@@ -23,9 +23,22 @@ type Config struct {
 	Cache          cache.Cache
 }
 
+var (
+	messageTimeFormat string
+)
+
+func init() {
+	// set time format without timezone, seconds and microseconds
+	messageTimeFormat = "2006-01-02 15:04"
+}
+
 func New(authToken, appToken, channelName string, adminUserEmails []string, cmdHandler *handlers.Handler, cache cache.Cache) *Config {
 	ctx, cancel := context.WithCancel(context.Background())
-	bot := slacker.NewClient(authToken, appToken)
+	bot := slacker.NewClient(
+		authToken,
+		appToken,
+		slacker.WithoutAllFormatting(),
+	)
 	adminUserIds := getAdminUserIDs(bot.APIClient(), adminUserEmails)
 
 	return &Config{
@@ -177,7 +190,7 @@ func (b *Config) defineVpnCommands() {
 }
 
 func (b *Config) defineDomainCommands() {
-	createConfig := &slacker.CommandDefinition{
+	createCommand := &slacker.CommandDefinition{
 		Description: "Create a domain for provided IP.",
 		Examples:    []string{"create 127.0.0.1"},
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
@@ -185,7 +198,7 @@ func (b *Config) defineDomainCommands() {
 			userId := botCtx.Event().UserID
 			id := strings.TrimSuffix(strings.TrimPrefix(userId, "<@"), ">")
 			userName := getUserFriendlyName(botCtx.APIClient(), id)
-			result, err := b.CmdHandler.DomainCreate(id, userName, ip)
+			d, err := b.CmdHandler.DomainCreate(id, userName, ip)
 			if err != nil {
 				log.Err(err).Msgf("Error creating domain. Request: %v, user: %v", botCtx.Event().Text, botCtx.Event().UserID)
 				replyErr := response.Reply(fmt.Sprintf("Error creating domain. %v", err), slacker.WithThreadReply(true))
@@ -194,7 +207,10 @@ func (b *Config) defineDomainCommands() {
 				}
 				return
 			}
-			err = response.Reply(result, slacker.WithThreadReply(true))
+			err = response.Reply(
+				fmt.Sprintf("Created domain %s with IP %s. Scheduled delete date: %s.", d.FQDN, d.IP, d.DeleteAt.In(b.CmdHandler.Timezone).Format(messageTimeFormat)),
+				slacker.WithThreadReply(true),
+			)
 			if err != nil {
 				log.Err(err).Msgf("Error sending reply. Request: %v, user: %v", botCtx.Event().Text, botCtx.Event().UserID)
 				return
@@ -202,7 +218,7 @@ func (b *Config) defineDomainCommands() {
 		},
 	}
 
-	updateConfig := &slacker.CommandDefinition{
+	updateCommand := &slacker.CommandDefinition{
 		Description: "Update parameter for domain. Available params: expire (no value), basic-auth(true|false), ip (<ip>), full-ssl(true|false).",
 		Examples:    []string{"update <param> <value>", "update expire", "update basic-auth true", "update ip 127.0.0.1"},
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
@@ -248,10 +264,10 @@ func (b *Config) defineDomainCommands() {
 		},
 	}
 
-	b.bot.Command("create <IP>", createConfig)
-	b.bot.Command("domain create <IP>", createConfig)
-	b.bot.Command("update <param> <value>", updateConfig)
-	b.bot.Command("domain update <param> <value>", updateConfig)
+	b.bot.Command("create <IP>", createCommand)
+	b.bot.Command("domain create <IP>", createCommand)
+	b.bot.Command("update <param> <value>", updateCommand)
+	b.bot.Command("domain update <param> <value>", updateCommand)
 	b.bot.Command("delete", deleteCommand)
 	b.bot.Command("domain delete", deleteCommand)
 }

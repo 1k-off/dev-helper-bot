@@ -17,13 +17,13 @@ var (
 	timeStoreDomain = timeStoreDomainWeek * time.Hour * 24 * 7
 )
 
-func (h *Handler) DomainCreate(userId, userName, ip string) (string, error) {
+func (h *Handler) DomainCreate(userId, userName, ip string) (*entities.Domain, error) {
 	if err := nginx.CheckIfIpAllowed(h.NginxConfig.AllowedSubnets, h.NginxConfig.DeniedIPs, ip); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	fqdn := transformName(userName) + "." + h.NginxConfig.ParentDomain
-	delDate := time.Now().Add(timeStoreDomain).In(h.Timezone)
+	delDate := time.Now().Add(timeStoreDomain)
 	deleteDate := time.Date(delDate.Year(), delDate.Month(), delDate.Day(), 9, 0, 0, delDate.Nanosecond(), delDate.Location())
 
 	domain := &entities.Domain{
@@ -39,15 +39,15 @@ func (h *Handler) DomainCreate(userId, userName, ip string) (string, error) {
 	}
 
 	if err := nginx.Create(domain); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	err := h.Store.DomainRepository().Create(domain)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	log.Info().Msg(fmt.Sprintf("[bot] created domain %s with IP %s. Scheduled delete date: %s.", domain.FQDN, domain.IP, domain.DeleteAt))
-	return fmt.Sprintf("Created domain %s with IP %s. Scheduled delete date: %s.", domain.FQDN, domain.IP, domain.DeleteAt.Format("2006-01-02 15:04:05")), nil
+	return domain, nil
 }
 
 func (h *Handler) DomainUpdate(userId, param, value string) (string, error) {
@@ -57,7 +57,7 @@ func (h *Handler) DomainUpdate(userId, param, value string) (string, error) {
 	}
 
 	updateExp := func() {
-		delDate := time.Now().Add(timeStoreDomain).In(h.Timezone)
+		delDate := time.Now().Add(timeStoreDomain)
 		d.DeleteAt = time.Date(delDate.Year(), delDate.Month(), delDate.Day(), 9, 0, 0, delDate.Nanosecond(), delDate.Location())
 	}
 
