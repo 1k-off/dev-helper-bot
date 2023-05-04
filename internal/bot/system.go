@@ -51,7 +51,7 @@ func (b *Config) defineCronJobs() {
 					// send to channel
 					_, _, err = client.PostMessage(
 						b.ChannelName,
-						slack.MsgOptionText(fmt.Sprintf("<@%s>", d.UserId)+fmt.Sprintf("Your domain %s scheduled to delete at %s.", d.FQDN, d.DeleteAt.In(b.CmdHandler.Timezone)), false),
+						slack.MsgOptionText(fmt.Sprintf("<@%s>", d.UserId)+fmt.Sprintf("Your domain %s scheduled to delete at %s.", d.FQDN, d.DeleteAt.In(b.CmdHandler.Timezone).Format(messageTimeFormat)), false),
 						slack.MsgOptionAsUser(true),
 					)
 					if err != nil {
@@ -60,7 +60,7 @@ func (b *Config) defineCronJobs() {
 					// send to user
 					_, _, err = client.PostMessage(
 						d.UserId,
-						slack.MsgOptionText(fmt.Sprintf("Your domain %s scheduled to delete at %s.", d.FQDN, d.DeleteAt.In(b.CmdHandler.Timezone)), false),
+						slack.MsgOptionText(fmt.Sprintf("Your domain %s scheduled to delete at %s.", d.FQDN, d.DeleteAt.In(b.CmdHandler.Timezone).Format(messageTimeFormat)), false),
 						slack.MsgOptionAsUser(true),
 					)
 					if err != nil {

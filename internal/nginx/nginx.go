@@ -218,3 +218,13 @@ func isPrivateIP(ip net.IP) bool {
 	}
 	return false
 }
+
+func TestConfig() error {
+	nginx := "nginx"
+	cmd := exec.Command(nginx, "-t")
+	_, err := cmd.Output()
+	if err != nil {
+		return err
+	}
+	return nil
+}

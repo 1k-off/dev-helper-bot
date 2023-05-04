@@ -3,6 +3,7 @@ module github.com/1k-off/dev-helper-bot
 go 1.20
 
 require (
+	github.com/dgraph-io/badger/v3 v3.2103.5
 	github.com/google/uuid v1.3.0
 	github.com/marstr/guid v1.1.0
 	github.com/rs/zerolog v1.29.1
@@ -15,7 +16,6 @@ require (
 require (
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
-	github.com/dgraph-io/badger/v3 v3.2103.5 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
@@ -57,3 +57,5 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+replace github.com/shomali11/slacker v1.4.1 => github.com/1k-off/slacker v0.0.0-20230504211204-3fc195688f49
