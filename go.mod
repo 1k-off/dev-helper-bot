@@ -58,4 +58,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/shomali11/slacker v1.4.1 => github.com/1k-off/slacker v0.0.0-20230504211204-3fc195688f49
+replace github.com/shomali11/slacker v1.4.1 => ./third-party/slacker
