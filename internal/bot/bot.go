@@ -184,9 +184,63 @@ func (b *Config) defineVpnCommands() {
 			}
 		},
 	}
+
+	sendConfig := &slacker.CommandDefinition{
+		Description: "[ADMIN] Send VPN config to a user.",
+		Examples:    []string{"vpn send <email>", "vpn send @user"},
+		AuthorizationFunc: func(botCtx slacker.BotContext, request slacker.Request) bool {
+			return contains(b.AdminUserIDs, botCtx.Event().UserID)
+		},
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
+			email := request.Param("email")
+			if email == "" {
+				err := response.Reply("Not enough arguments", slacker.WithThreadReply(true))
+				if err != nil {
+					log.Err(err).Msgf("Error sending reply. Request: %v, user: %v", botCtx.Event().Text, botCtx.Event().UserID)
+					return
+				}
+				return
+			}
+
+			client := botCtx.APIClient()
+
+			var id string
+
+			if strings.HasPrefix(email, "<@") {
+				id = strings.TrimSuffix(strings.TrimPrefix(email, "<@"), ">")
+				email = getUserEmail(botCtx.APIClient(), id)
+			} else {
+				email = extractEmail(email)
+				id = getUserIdByEmail(client, email)
+			}
+
+			result, err := b.CmdHandler.VpnGetConfigUrl(email)
+			if err != nil {
+				log.Err(err).Msgf("Error getting vpn config. Request: %v, user: %v", botCtx.Event().Text, id)
+				replyErr := response.Reply("Error getting vpn config. Please contact admin.", slacker.WithThreadReply(true))
+				if replyErr != nil {
+					log.Err(replyErr).Msgf("Error sending reply. Request: %v, user: %v", botCtx.Event().Text, id)
+				}
+				return
+			}
+			_, _, err = client.PostMessage(id, slack.MsgOptionText(result, false))
+			if err != nil {
+				log.Err(err).Msgf("Error sending direct message. Request: %v, user: %v", botCtx.Event().Text, id)
+				return
+			}
+
+			err = response.Reply(fmt.Sprintf("Just sent the link to user <@%s>.", id), slacker.WithThreadReply(true))
+			if err != nil {
+				log.Err(err).Msgf("Error sending reply. Request: %v, user: %v", botCtx.Event().Text, id)
+				return
+			}
+		},
+	}
+
 	b.bot.Command("vpn get", getConfig)
 	b.bot.Command("vpn create <login> <email>", createProfile)
 	b.bot.Command("vpn delete <email>", deleteProfile)
+	b.bot.Command("vpn send <email>", sendConfig)
 }
 
 func (b *Config) defineDomainCommands() {

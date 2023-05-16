@@ -15,9 +15,9 @@ func contains(list []string, element string) bool {
 }
 
 func extractEmail(text string) string {
-	re := regexp.MustCompile(`<mailto:(.*?)\|(.*?)>`)
+	re := regexp.MustCompile(`<mailto:(.*?)\|.*?(?:>|$)`)
 	matches := re.FindStringSubmatch(text)
-	if len(matches) < 3 {
+	if len(matches) < 2 {
 		return ""
 	}
 	email := strings.TrimSpace(matches[1])
