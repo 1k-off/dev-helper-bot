@@ -103,12 +103,14 @@ func (b *Config) defineVpnCommands() {
 			return contains(b.AdminUserIDs, botCtx.Event().UserID)
 		},
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
+			var userId string
 			login := request.Param("login")
 			email := request.Param("email")
 			if email == "" {
 				if login != "" {
 					if strings.HasPrefix(login, "<@") {
 						id := strings.TrimSuffix(strings.TrimPrefix(login, "<@"), ">")
+						userId = id
 						email = getUserEmail(botCtx.APIClient(), id)
 						login = getUserFriendlyName(botCtx.APIClient(), id)
 					} else {
@@ -129,6 +131,12 @@ func (b *Config) defineVpnCommands() {
 				}
 			} else {
 				email = extractEmail(email)
+				var err error
+				userId, err = getSlackUserIdByEmail(botCtx.APIClient(), email)
+				if err != nil {
+					log.Err(err).Msgf("Error getting slack user id by email. Request: %v, user: %v", botCtx.Event().Text, botCtx.Event().UserID)
+					return
+				}
 			}
 			err := b.CmdHandler.VpnCreateUser(login, email)
 			if err != nil {
@@ -143,7 +151,18 @@ func (b *Config) defineVpnCommands() {
 					log.Err(err).Msgf("Error sending reply. Request: %v, user: %v", botCtx.Event().Text, botCtx.Event().UserID)
 					return
 				}
+				err = sendVPNWelcomeMessage(botCtx.APIClient(), userId, b.CmdHandler.GetVpnWelcomeMessage())
+				if err != nil {
+					log.Err(err).Msgf("Error sending vpn welcome message. Request: %v, user: %v", botCtx.Event().Text, userId)
+					return
+				}
+				err = response.Reply(fmt.Sprintf("Welcome message to %s is sent.", userId), slacker.WithThreadReply(true))
+				if err != nil {
+					log.Err(err).Msgf("Error sending reply. Request: %v, user: %v", botCtx.Event().Text, botCtx.Event().UserID)
+					return
+				}
 			}
+			return
 		},
 	}
 
@@ -273,8 +292,8 @@ func (b *Config) defineDomainCommands() {
 	}
 
 	updateCommand := &slacker.CommandDefinition{
-		Description: "Update parameter for domain. Available params: expire (no value), basic-auth(true|false), ip (<ip>), full-ssl(true|false).",
-		Examples:    []string{"update <param> <value>", "update expire", "update basic-auth true", "update ip 127.0.0.1"},
+		Description: "Update parameter for domain. Available params: expire (no value), basic-auth(true|false), ip (<ip>), full-ssl(true|false), port <port>.",
+		Examples:    []string{"update <param> <value>", "update expire", "update basic-auth true", "update ip 127.0.0.1", "update port 3000"},
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			param := request.StringParam("param", "expire")
 			value := request.StringParam("value", "")

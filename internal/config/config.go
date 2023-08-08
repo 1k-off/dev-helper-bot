@@ -22,10 +22,11 @@ type App struct {
 }
 
 type Pritunl struct {
-	Host         string `mapstructure:"host"`
-	Token        string `mapstructure:"token"`
-	Secret       string `mapstructure:"secret"`
-	Organization string `mapstructure:"organization"`
+	Host           string `mapstructure:"host"`
+	Token          string `mapstructure:"token"`
+	Secret         string `mapstructure:"secret"`
+	Organization   string `mapstructure:"organization"`
+	WelcomeMessage string `mapstructure:"welcome_message"`
 }
 
 type Nginx struct {

@@ -8,17 +8,19 @@ import (
 )
 
 type Handler struct {
-	PritunlClient *pritunl.Client
-	NginxConfig   config.Nginx
-	Store         store.Store
-	Timezone      *time.Location
+	PritunlClient    *pritunl.Client
+	MessageTemplates map[string]string
+	NginxConfig      config.Nginx
+	Store            store.Store
+	Timezone         *time.Location
 }
 
-func New(c *pritunl.Client, nc config.Nginx, s store.Store, timezone *time.Location) *Handler {
+func New(c *pritunl.Client, nc config.Nginx, s store.Store, timezone *time.Location, msgTemplates map[string]string) *Handler {
 	return &Handler{
-		PritunlClient: c,
-		NginxConfig:   nc,
-		Store:         s,
-		Timezone:      timezone,
+		PritunlClient:    c,
+		MessageTemplates: msgTemplates,
+		NginxConfig:      nc,
+		Store:            s,
+		Timezone:         timezone,
 	}
 }

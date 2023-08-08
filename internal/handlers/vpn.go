@@ -23,3 +23,7 @@ func (h *Handler) VpnDeleteUser(email string) error {
 	}
 	return nil
 }
+
+func (h *Handler) GetVpnWelcomeMessage() string {
+	return h.MessageTemplates["vpnWelcomeMessage"]
+}
