@@ -9,6 +9,11 @@ pritunl:
   token: "secret"
   secret: "secret"
   organization: "Organization"
+  welcome_message: >
+    Some helpful text.
+    <#C0123456789> - channel mention
+    <@U0123456789> - user mention
+    `vpn get` - command example
 nginx:
   parent_domain: "domain.tld"
   allowed_subnets:

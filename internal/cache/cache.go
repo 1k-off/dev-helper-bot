@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"errors"
 	"fmt"
 	"github.com/dgraph-io/badger/v3"
 )
@@ -69,7 +70,7 @@ func (c *Db) Has(namespace, key string) (bool, error) {
 	err := c.db.View(func(txn *badger.Txn) error {
 		_, err := txn.Get(namespaceKey(namespace, key))
 		if err != nil {
-			if err == badger.ErrKeyNotFound {
+			if errors.Is(err, badger.ErrKeyNotFound) {
 				has = false
 				return nil
 			}

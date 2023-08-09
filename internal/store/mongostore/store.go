@@ -22,16 +22,16 @@ func New(uri string) *DataStore {
 	if err != nil {
 		log.Fatal().Err(err).Msg("")
 	}
-	client, err := mongo.NewClient(options.Client().ApplyURI(uri))
+
+	// Use the SetServerAPIOptions() method to set the Stable API version to 1
+	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
+	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
+	client, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
 		log.Fatal().Err(err).Msg("")
 	}
 	ctx := context.Background()
-	err = client.Connect(ctx)
-	if err != nil {
-		log.Fatal().Err(err).Msg("")
-	}
-	err = client.Ping(context.TODO(), nil)
+	err = client.Ping(ctx, nil)
 	if err != nil {
 		log.Fatal().Err(err).Msg("")
 	}
