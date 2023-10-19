@@ -21,7 +21,7 @@ webserver:
   denied_ips:
     - "10.0.0.1/32"
     - "10.0.0.10/32"
-  nginx: true
+  kind: "nginx" # possible values: nginx, caddy
 slack:
   app_token: xapp-
   auth_token: xoxb-

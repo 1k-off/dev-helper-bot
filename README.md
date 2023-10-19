@@ -1,7 +1,7 @@
 # Dev Helper Slack Bot
 
 Slack bot written in go with mongodb store. What it can do:
-- create nginx configurations from template and reload nginx (personal domain for any developer mapped to his workstation through VPN connection)
+- create nginx or caddy configurations from template and reload nginx (personal domain for any developer mapped to his workstation through VPN connection)
 - delete created nginx configurations after a time
 - update nginx configurations (basic auth, proxy port, full-ssl, target IP)
 - create and delete VPN configurations (pritunl) (admin only)

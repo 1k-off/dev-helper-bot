@@ -3,8 +3,6 @@ package config
 import (
 	"fmt"
 	"github.com/1k-off/dev-helper-bot/internal/webserver"
-	caddy_svc "github.com/1k-off/dev-helper-bot/internal/webserver/caddy-svc"
-	"github.com/1k-off/dev-helper-bot/internal/webserver/nginx"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"time"
@@ -41,8 +39,7 @@ type Webserver struct {
 	ParentDomain   string              `mapstructure:"parent_domain"`
 	AllowedSubnets []string            `mapstructure:"allowed_subnets"`
 	DeniedIPs      []string            `mapstructure:"denied_ips"`
-	Nginx          bool                `mapstructure:"nginx"`
-	Caddy          bool                `mapstructure:"caddy"`
+	Kind           string              `mapstructure:"kind"`
 	Service        webserver.Webserver `mapstructure:"-"`
 }
 
@@ -85,11 +82,7 @@ func Load(path string) (*Config, error) {
 		tz, _ = time.LoadLocation("Europe/Kyiv")
 	}
 	cfg.Timezone = tz
-	if cfg.Webserver.Nginx {
-		cfg.Webserver.Service = nginx.New()
-	} else if cfg.Webserver.Caddy {
-		cfg.Webserver.Service = caddy_svc.New()
-	}
+	cfg.Webserver.Service = webserver.New(cfg.Webserver.Kind)
 	return cfg, nil
 }
 
@@ -98,11 +91,16 @@ func (c *Config) Validate() error {
 		log.Debug().Msgf("failed to validate log level: %s", err)
 		return err
 	}
-	if !c.Webserver.Nginx && !c.Webserver.Caddy {
-		return fmt.Errorf("[config] both nginx and caddy are disabled")
+	if err := validateServerKind(c.Webserver.Kind); err != nil {
+		log.Debug().Msgf("failed to validate server kind: %s", err)
+		return err
 	}
-	if c.Webserver.Nginx && c.Webserver.Caddy {
-		return fmt.Errorf("[config] both nginx and caddy are enabled")
+	return nil
+}
+
+func validateServerKind(kind string) error {
+	if kind != webserver.ServerCaddy && kind != webserver.ServerNginx {
+		return fmt.Errorf("invalid server kind: %s", kind)
 	}
 	return nil
 }
