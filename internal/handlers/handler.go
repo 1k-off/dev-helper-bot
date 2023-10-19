@@ -10,16 +10,16 @@ import (
 type Handler struct {
 	PritunlClient    *pritunl.Client
 	MessageTemplates map[string]string
-	NginxConfig      config.Nginx
+	Webserver        config.Webserver
 	Store            store.Store
 	Timezone         *time.Location
 }
 
-func New(c *pritunl.Client, nc config.Nginx, s store.Store, timezone *time.Location, msgTemplates map[string]string) *Handler {
+func New(c *pritunl.Client, wc config.Webserver, s store.Store, timezone *time.Location, msgTemplates map[string]string) *Handler {
 	return &Handler{
 		PritunlClient:    c,
 		MessageTemplates: msgTemplates,
-		NginxConfig:      nc,
+		Webserver:        wc,
 		Store:            s,
 		Timezone:         timezone,
 	}

@@ -29,7 +29,7 @@ func main() {
 	messageTemplates := map[string]string{
 		"vpnWelcomeMessage": cfg.Pritunl.WelcomeMessage,
 	}
-	handler := handlers.New(pritunlClient, cfg.Nginx, store, cfg.Timezone, messageTemplates)
+	handler := handlers.New(pritunlClient, cfg.Webserver, store, cfg.Timezone, messageTemplates)
 	c, err := cache.New("./data/cache")
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to create cache")

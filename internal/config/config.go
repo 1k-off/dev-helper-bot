@@ -1,17 +1,21 @@
 package config
 
 import (
+	"fmt"
+	"github.com/1k-off/dev-helper-bot/internal/webserver"
+	caddy_svc "github.com/1k-off/dev-helper-bot/internal/webserver/caddy-svc"
+	"github.com/1k-off/dev-helper-bot/internal/webserver/nginx"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 	"time"
 )
 
 type Config struct {
-	App      App     `mapstructure:"app"`
-	Pritunl  Pritunl `mapstructure:"pritunl"`
-	Nginx    Nginx   `mapstructure:"nginx"`
-	Slack    Slack   `mapstructure:"slack"`
-	Timezone *time.Location
+	App       App       `mapstructure:"app"`
+	Pritunl   Pritunl   `mapstructure:"pritunl"`
+	Webserver Webserver `mapstructure:"webserver"`
+	Slack     Slack     `mapstructure:"slack"`
+	Timezone  *time.Location
 }
 
 type App struct {
@@ -27,12 +31,19 @@ type Pritunl struct {
 	Secret         string `mapstructure:"secret"`
 	Organization   string `mapstructure:"organization"`
 	WelcomeMessage string `mapstructure:"welcome_message"`
+	HostEU         string `mapstructure:"host_eu"`
+	TokenEU        string `mapstructure:"token_eu"`
+	SecretEU       string `mapstructure:"secret_eu"`
+	OrganizationEU string `mapstructure:"organization_eu"`
 }
 
-type Nginx struct {
-	ParentDomain   string   `mapstructure:"parent_domain"`
-	AllowedSubnets []string `mapstructure:"allowed_subnets"`
-	DeniedIPs      []string `mapstructure:"denied_ips"`
+type Webserver struct {
+	ParentDomain   string              `mapstructure:"parent_domain"`
+	AllowedSubnets []string            `mapstructure:"allowed_subnets"`
+	DeniedIPs      []string            `mapstructure:"denied_ips"`
+	Nginx          bool                `mapstructure:"nginx"`
+	Caddy          bool                `mapstructure:"caddy"`
+	Service        webserver.Webserver `mapstructure:"-"`
 }
 
 type Slack struct {
@@ -74,6 +85,11 @@ func Load(path string) (*Config, error) {
 		tz, _ = time.LoadLocation("Europe/Kyiv")
 	}
 	cfg.Timezone = tz
+	if cfg.Webserver.Nginx {
+		cfg.Webserver.Service = nginx.New()
+	} else if cfg.Webserver.Caddy {
+		cfg.Webserver.Service = caddy_svc.New()
+	}
 	return cfg, nil
 }
 
@@ -81,6 +97,12 @@ func (c *Config) Validate() error {
 	if err := validateLogLevel(c.App.LogLevel); err != nil {
 		log.Debug().Msgf("failed to validate log level: %s", err)
 		return err
+	}
+	if !c.Webserver.Nginx && !c.Webserver.Caddy {
+		return fmt.Errorf("[config] both nginx and caddy are disabled")
+	}
+	if c.Webserver.Nginx && c.Webserver.Caddy {
+		return fmt.Errorf("[config] both nginx and caddy are enabled")
 	}
 	return nil
 }

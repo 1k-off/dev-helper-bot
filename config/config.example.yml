@@ -14,13 +14,14 @@ pritunl:
     <#C0123456789> - channel mention
     <@U0123456789> - user mention
     `vpn get` - command example
-nginx:
+webserver:
   parent_domain: "domain.tld"
   allowed_subnets:
     - "10.0.0.0/24"
   denied_ips:
     - "10.0.0.1/32"
     - "10.0.0.10/32"
+  nginx: true
 slack:
   app_token: xapp-
   auth_token: xoxb-

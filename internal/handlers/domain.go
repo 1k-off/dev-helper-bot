@@ -3,7 +3,7 @@ package handlers
 import (
 	"fmt"
 	"github.com/1k-off/dev-helper-bot/internal/entities"
-	"github.com/1k-off/dev-helper-bot/internal/nginx"
+	"github.com/1k-off/dev-helper-bot/internal/webserver"
 	"github.com/rs/zerolog/log"
 	"strconv"
 	"time"
@@ -18,11 +18,11 @@ var (
 )
 
 func (h *Handler) DomainCreate(userId, userName, ip string) (*entities.Domain, error) {
-	if err := nginx.CheckIfIpAllowed(h.NginxConfig.AllowedSubnets, h.NginxConfig.DeniedIPs, ip); err != nil {
+	if err := webserver.CheckIfIpAllowed(h.Webserver.AllowedSubnets, h.Webserver.DeniedIPs, ip); err != nil {
 		return nil, err
 	}
 
-	fqdn := transformName(userName) + "." + h.NginxConfig.ParentDomain
+	fqdn := transformName(userName) + "." + h.Webserver.ParentDomain
 	delDate := time.Now().Add(timeStoreDomain)
 	deleteDate := time.Date(delDate.Year(), delDate.Month(), delDate.Day(), 9, 0, 0, delDate.Nanosecond(), delDate.Location())
 
@@ -38,7 +38,7 @@ func (h *Handler) DomainCreate(userId, userName, ip string) (*entities.Domain, e
 		Port:      "80",
 	}
 
-	if err := nginx.Create(domain); err != nil {
+	if err := h.Webserver.Service.Create(domain); err != nil {
 		return nil, err
 	}
 
@@ -68,11 +68,11 @@ func (h *Handler) DomainUpdate(userId, param, value string) (string, error) {
 		updateExp()
 	case "ip":
 		ip := value
-		if err = nginx.CheckIfIpAllowed(h.NginxConfig.AllowedSubnets, h.NginxConfig.DeniedIPs, ip); err != nil {
+		if err = webserver.CheckIfIpAllowed(h.Webserver.AllowedSubnets, h.Webserver.DeniedIPs, ip); err != nil {
 			return "", err
 		}
 		d.IP = ip
-		if err = updateNginxConf(d); err != nil {
+		if err = h.updateNginxConf(d); err != nil {
 			return "", err
 		}
 	case "basic-auth":
@@ -81,7 +81,7 @@ func (h *Handler) DomainUpdate(userId, param, value string) (string, error) {
 			return "", err
 		}
 		d.BasicAuth = ba
-		if err = updateNginxConf(d); err != nil {
+		if err = h.updateNginxConf(d); err != nil {
 			return "", err
 		}
 	case "full-ssl":
@@ -90,7 +90,7 @@ func (h *Handler) DomainUpdate(userId, param, value string) (string, error) {
 			return "", err
 		}
 		d.FullSsl = fs
-		if err = updateNginxConf(d); err != nil {
+		if err = h.updateNginxConf(d); err != nil {
 			return "", err
 		}
 	case "port":
@@ -105,7 +105,7 @@ func (h *Handler) DomainUpdate(userId, param, value string) (string, error) {
 			return "", fmt.Errorf("port must be in range 1-65535")
 		}
 		d.Port = value
-		if err = updateNginxConf(d); err != nil {
+		if err = h.updateNginxConf(d); err != nil {
 			return "", err
 		}
 	default:
@@ -120,12 +120,12 @@ func (h *Handler) DomainUpdate(userId, param, value string) (string, error) {
 	return "Updated", nil
 }
 
-func updateNginxConf(d *entities.Domain) error {
-	err := nginx.Delete(d.FQDN)
+func (h *Handler) updateNginxConf(d *entities.Domain) error {
+	err := h.Webserver.Service.Delete(d.FQDN)
 	if err != nil {
 		return err
 	}
-	if err = nginx.Create(d); err != nil {
+	if err = h.Webserver.Service.Create(d); err != nil {
 		return err
 	}
 	return nil
@@ -140,7 +140,7 @@ func (h *Handler) DomainDelete(userId string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	err = nginx.Delete(d.FQDN)
+	err = h.Webserver.Service.Delete(d.FQDN)
 	if err != nil {
 		return "", err
 	}
@@ -167,7 +167,7 @@ func (h *Handler) DomainDeleteExpired() error {
 		return err
 	}
 	for _, d := range domains {
-		if err = nginx.Delete(d.FQDN); err != nil {
+		if err = h.Webserver.Service.Delete(d.FQDN); err != nil {
 			log.Err(err).Msg(fmt.Sprintf("[bot] error deleting domain %v", d))
 			errors = append(errors, err)
 		}

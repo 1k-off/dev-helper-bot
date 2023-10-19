@@ -337,10 +337,7 @@ func (b *Config) defineDomainCommands() {
 		},
 	}
 
-	b.bot.Command("create <IP>", createCommand)
 	b.bot.Command("domain create <IP>", createCommand)
-	b.bot.Command("update <param> <value>", updateCommand)
 	b.bot.Command("domain update <param> <value>", updateCommand)
-	b.bot.Command("delete", deleteCommand)
 	b.bot.Command("domain delete", deleteCommand)
 }
