@@ -2,6 +2,7 @@ package store
 
 const (
 	DomainCollection = "web_server"
+	VpnEUCollection  = "vpn_eu"
 )
 
 const (
@@ -12,4 +13,12 @@ const (
 	DomainDeleteAtKey  = "delete_at"
 	DomainFqdnKey      = "fqdn"
 	DomainPortKey      = "port"
+)
+
+const (
+	VpnEuUserEmail    = "user_email"
+	VpnEUUserName     = "user_name"
+	VpnEUCreatedAt    = "created_at"
+	VpnEUDeactivateAt = "deactivate_at"
+	VpnEUActive       = "active"
 )

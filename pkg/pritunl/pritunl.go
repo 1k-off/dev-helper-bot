@@ -31,6 +31,7 @@ type User struct {
 	OrganizationName string `json:"organization_name"`
 	Name             string `json:"name"`
 	Email            string `json:"email"`
+	Disabled         bool   `json:"disabled"`
 }
 
 type Key struct {
@@ -111,6 +112,7 @@ func (c *Client) GetUserByName(name string, orgId string) (user User, err error)
 	}
 	return user, nil
 }
+
 func (c *Client) GetUserByEmail(email string, orgId string) (user User, err error) {
 	req, err := c.newRequest(http.MethodGet, endpointUser+"/"+orgId, nil)
 	if err != nil {
@@ -222,5 +224,53 @@ func (c *Client) DeleteUser(id, orgId string) error {
 			return
 		}
 	}(resp.Body)
+	return nil
+}
+
+func (c *Client) UpdateUser(id, orgId string, userInfo *User) error {
+	payload, err := json.Marshal(userInfo)
+	if err != nil {
+		return err
+	}
+	req, err := c.newRequest(http.MethodPut, endpointUser+"/"+orgId+"/"+id, bytes.NewBuffer(payload))
+	if err != nil {
+		return err
+	}
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			return
+		}
+	}(resp.Body)
+	return nil
+}
+
+func (c *Client) ActivateUser(email, orgId string) error {
+	user, err := c.GetUserByEmail(email, orgId)
+	if err != nil {
+		return err
+	}
+	user.Disabled = false
+	err = c.UpdateUser(user.ID, orgId, &user)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Client) DeactivateUser(email, orgId string) error {
+	user, err := c.GetUserByEmail(email, orgId)
+	if err != nil {
+		return err
+	}
+	user.Disabled = true
+	err = c.UpdateUser(user.ID, orgId, &user)
+	if err != nil {
+		return err
+	}
 	return nil
 }

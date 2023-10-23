@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/shomali11/slacker"
 	"github.com/slack-go/slack"
+	"strconv"
 	"strings"
 )
 
@@ -55,9 +56,11 @@ func New(authToken, appToken, channelName string, adminUserEmails []string, cmdH
 }
 
 func (b *Config) Run() error {
-	b.defineCronJobs()
+	b.defineDomainCronJobs()
+	b.defineVpnEUCronJobs()
 	b.defineVpnCommands()
 	b.defineDomainCommands()
+	b.defineVpnEUCommands()
 	return b.bot.Listen(b.Ctx)
 }
 
@@ -293,7 +296,7 @@ func (b *Config) defineDomainCommands() {
 
 	updateCommand := &slacker.CommandDefinition{
 		Description: "Update parameter for domain. Available params: expire (no value), basic-auth(true|false), ip (<ip>), full-ssl(true|false), port <port>.",
-		Examples:    []string{"update <param> <value>", "update expire", "update basic-auth true", "update ip 127.0.0.1", "update port 3000"},
+		Examples:    []string{"update <param> <value>", "update expire", "update basic-auth true", "update ip 127.0.0.1", "update port 3000", "update full-ssl true"},
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			param := request.StringParam("param", "expire")
 			value := request.StringParam("value", "")
@@ -340,4 +343,59 @@ func (b *Config) defineDomainCommands() {
 	b.bot.Command("domain create <IP>", createCommand)
 	b.bot.Command("domain update <param> <value>", updateCommand)
 	b.bot.Command("domain delete", deleteCommand)
+}
+
+func (b *Config) defineVpnEUCommands() {
+	getConfig := &slacker.CommandDefinition{
+		Description: "Get your personal EU vpn config for X hours. Possible values: 1,2,4. Without params creates account for 1 hour.",
+		Examples:    []string{"vpn eu get <hours> <duration>", "vpn eu get", "vpn eu get hours 1"},
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
+			param := request.StringParam("param", "hours")
+			value, err := strconv.Atoi(request.StringParam("value", "1"))
+			if err != nil {
+				log.Err(err).Msgf("Error converting string to int. Request: %v, user: %v", botCtx.Event().Text, botCtx.Event().UserID)
+				replyErr := response.Reply("Error converting string to int.", slacker.WithThreadReply(true))
+				if replyErr != nil {
+					log.Err(replyErr).Msgf("Error sending reply. Request: %v, user: %v", botCtx.Event().Text, botCtx.Event().UserID)
+				}
+				return
+			}
+			switch param {
+			case "hours":
+				userId := botCtx.Event().UserID
+				email := getUserEmail(botCtx.APIClient(), userId)
+				id := strings.TrimSuffix(strings.TrimPrefix(userId, "<@"), ">")
+				userName := getUserFriendlyName(botCtx.APIClient(), id)
+				result, err := b.CmdHandler.VpnGetEUConfigUrl(userName, email, id, value)
+				if err != nil {
+					log.Err(err).Msgf("Error getting EU vpn config url. Request: %v, user: %v", botCtx.Event().Text, userId)
+					replyErr := response.Reply(fmt.Sprintf("Error getting EU vpn config url. %s", err.Error()), slacker.WithThreadReply(true))
+					if replyErr != nil {
+						log.Err(replyErr).Msgf("Error sending reply. Request: %v, user: %v", botCtx.Event().Text, userId)
+					}
+					return
+				}
+				client := botCtx.APIClient()
+				_, _, err = client.PostMessage(userId, slack.MsgOptionText(result, false))
+				if err != nil {
+					log.Err(err).Msgf("Error sending direct message. Request: %v, user: %v", botCtx.Event().Text, userId)
+					return
+				}
+
+				err = response.Reply("Just sent instructions in a private message.", slacker.WithThreadReply(true))
+				if err != nil {
+					log.Err(err).Msgf("Error sending reply. Request: %v, user: %v", botCtx.Event().Text, userId)
+					return
+				}
+			default:
+				err = response.Reply("Unsupported parameter. Possible values: `hours`.", slacker.WithThreadReply(true))
+				if err != nil {
+					log.Err(err).Msgf("Error sending reply. Request: %v, user: %v", botCtx.Event().Text, botCtx.Event().UserID)
+					return
+				}
+			}
+		},
+	}
+
+	b.bot.Command("vpn eu get <param> <value>", getConfig)
 }

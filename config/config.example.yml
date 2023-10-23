@@ -14,6 +14,10 @@ pritunl:
     <#C0123456789> - channel mention
     <@U0123456789> - user mention
     `vpn get` - command example
+  host_eu: "https://vpn.eu.domain.tld"
+  token_eu: "secret"
+  secret_eu: "secret"
+  organization_eu: "Organization"
 webserver:
   parent_domain: "domain.tld"
   allowed_subnets:

@@ -25,11 +25,12 @@ func main() {
 	}
 
 	pritunlClient := pritunl.New(cfg.Pritunl.Host, cfg.Pritunl.Token, cfg.Pritunl.Secret, cfg.Pritunl.Organization)
+	pritunlEUClient := pritunl.New(cfg.Pritunl.HostEU, cfg.Pritunl.TokenEU, cfg.Pritunl.SecretEU, cfg.Pritunl.OrganizationEU)
 	store := mongostore.New(cfg.App.DatasourceConnectionString)
 	messageTemplates := map[string]string{
 		"vpnWelcomeMessage": cfg.Pritunl.WelcomeMessage,
 	}
-	handler := handlers.New(pritunlClient, cfg.Webserver, store, cfg.Timezone, messageTemplates)
+	handler := handlers.New(pritunlClient, pritunlEUClient, cfg.Webserver, store, cfg.Timezone, messageTemplates)
 	c, err := cache.New("./data/cache")
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to create cache")

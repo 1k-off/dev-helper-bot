@@ -27,18 +27,18 @@ func extractEmail(text string) string {
 }
 
 // setNotified sets the notified flag for a user in the local cache
-func (b *Config) setNotified(userId string) error {
-	return b.Cache.Set(cacheNamespaceNotified, userId, "true")
+func (b *Config) setNotified(userId, namespace string) error {
+	return b.Cache.Set(namespace, userId, "true")
 }
 
 // isNotified checks if a user has been notified
-func (b *Config) isNotified(userId string) (bool, error) {
-	return b.Cache.Has(cacheNamespaceNotified, userId)
+func (b *Config) isNotified(userId, namespace string) (bool, error) {
+	return b.Cache.Has(namespace, userId)
 }
 
 // clearNotified clears the notified flag for a user in the local cache
-func (b *Config) clearNotified(userId string) error {
-	return b.Cache.Delete(cacheNamespaceNotified, userId)
+func (b *Config) clearNotified(userId, namespace string) error {
+	return b.Cache.Delete(namespace, userId)
 }
 
 // sendVpnWelcomeMessage sends a welcome message if it is set to a user when creating new config

@@ -9,15 +9,17 @@ import (
 
 type Handler struct {
 	PritunlClient    *pritunl.Client
+	PritunlEUClient  *pritunl.Client
 	MessageTemplates map[string]string
 	Webserver        config.Webserver
 	Store            store.Store
 	Timezone         *time.Location
 }
 
-func New(c *pritunl.Client, wc config.Webserver, s store.Store, timezone *time.Location, msgTemplates map[string]string) *Handler {
+func New(c, cEU *pritunl.Client, wc config.Webserver, s store.Store, timezone *time.Location, msgTemplates map[string]string) *Handler {
 	return &Handler{
 		PritunlClient:    c,
+		PritunlEUClient:  cEU,
 		MessageTemplates: msgTemplates,
 		Webserver:        wc,
 		Store:            s,

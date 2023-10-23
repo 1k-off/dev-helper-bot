@@ -1,5 +1,6 @@
 package bot
 
 const (
-	cacheNamespaceNotified = "notified"
+	cacheNamespaceDomainNotified = "domain"
+	cacheNamespaceVpnEUNotified  = "vpneu"
 )

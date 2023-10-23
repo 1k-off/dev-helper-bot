@@ -9,3 +9,9 @@ type DomainRepository interface {
 	GetAllRecordsToDeleteInDays(days int) (domains []*entities.Domain, err error)
 	DeleteByFqdn(fqdn string) error
 }
+
+type VPNEURepository interface {
+	Create(vpnRecord *entities.VPNEU) error
+	GetAllRecordsToDeactivateInMinutes(minutes int) (records []*entities.VPNEU, err error)
+	SetInactive(record *entities.VPNEU) error
+}

@@ -15,6 +15,7 @@ type DataStore struct {
 	db               *mongo.Database
 	ctx              context.Context
 	domainRepository *domainRepository
+	vpnEuRepository  *vpnEuRepository
 }
 
 func New(uri string) *DataStore {
@@ -62,6 +63,28 @@ func (s *DataStore) DomainRepository() store.DomainRepository {
 		collection: c,
 	}
 	return s.domainRepository
+}
+
+func (s *DataStore) VPNEURepository() store.VPNEURepository {
+	if s.vpnEuRepository != nil {
+		return s.vpnEuRepository
+	}
+	c := s.db.Collection(store.VpnEUCollection)
+	_, err := c.Indexes().CreateOne(
+		context.Background(),
+		mongo.IndexModel{
+			Keys:    bson.D{{Key: store.VpnEuUserEmail, Value: 1}},
+			Options: options.Index(),
+		},
+	)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+	}
+	s.vpnEuRepository = &vpnEuRepository{
+		store:      s,
+		collection: c,
+	}
+	return s.vpnEuRepository
 }
 
 func (s *DataStore) Close() error {
