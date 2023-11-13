@@ -10,7 +10,7 @@ require (
 	github.com/shomali11/slacker v1.4.1
 	github.com/slack-go/slack v0.12.3
 	github.com/spf13/viper v1.17.0
-	go.mongodb.org/mongo-driver v1.12.1
+	go.mongodb.org/mongo-driver v1.13.0
 )
 
 require (
