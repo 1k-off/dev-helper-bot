@@ -6,7 +6,7 @@ require (
 	github.com/dgraph-io/badger/v3 v3.2103.5
 	github.com/google/uuid v1.5.0
 	github.com/marstr/guid v1.1.0
-	github.com/rs/zerolog v1.31.0
+	github.com/rs/zerolog v1.32.0
 	github.com/shomali11/slacker v1.4.1
 	github.com/slack-go/slack v0.12.3
 	github.com/spf13/viper v1.18.2
