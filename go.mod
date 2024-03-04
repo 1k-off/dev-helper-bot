@@ -8,7 +8,7 @@ require (
 	github.com/marstr/guid v1.1.0
 	github.com/rs/zerolog v1.31.0
 	github.com/shomali11/slacker v1.4.1
-	github.com/slack-go/slack v0.12.3
+	github.com/slack-go/slack v0.12.5
 	github.com/spf13/viper v1.18.2
 	go.mongodb.org/mongo-driver v1.13.1
 )
