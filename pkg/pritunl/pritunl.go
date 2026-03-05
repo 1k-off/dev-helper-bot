@@ -6,6 +6,8 @@ import (
 	"errors"
 	"io"
 	"net/http"
+
+	"github.com/rs/zerolog/log"
 )
 
 type Client struct {
@@ -145,7 +147,7 @@ func (c *Client) GetUserByEmail(email string, orgId string) (user User, err erro
 }
 
 func (c *Client) GetUserKeys(userId, orgId string) (key Key, err error) {
-	req, err := c.newRequest(http.MethodGet, endpointKey+"/"+orgId+"/"+userId, nil)
+	req, err := c.newRequest(http.MethodGet, endpointData+"/"+orgId+"/"+userId, nil)
 	if err != nil {
 		return
 	}
@@ -159,9 +161,13 @@ func (c *Client) GetUserKeys(userId, orgId string) (key Key, err error) {
 			return
 		}
 	}(resp.Body)
-	err = json.NewDecoder(resp.Body).Decode(&key)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return
+	}
+	log.Info().Msgf("response: %v", string(bodyBytes))
+	if err := json.Unmarshal(bodyBytes, &key); err != nil {
+		return key, err
 	}
 	return key, nil
 }

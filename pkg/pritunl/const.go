@@ -4,4 +4,5 @@ const (
 	endpointOrganization = "/organization"
 	endpointUser         = "/user"
 	endpointKey          = "/key"
+	endpointData         = "/data"
 )
